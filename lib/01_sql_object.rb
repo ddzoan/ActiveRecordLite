@@ -70,7 +70,9 @@ class SQLObject
   def initialize(params = {})
     columns = self.class.columns
     params.each do |attr_name, value|
-      raise "unknown attribute '#{attr_name}'" unless columns.include?(attr_name.to_sym)
+      unless columns.include?(attr_name.to_sym)
+        raise "unknown attribute '#{attr_name}'"
+      end
       self.send("#{attr_name}=", value)
     end
   end
@@ -103,7 +105,7 @@ class SQLObject
   end
 
   def update
-    set_str = self.class.columns.map { |attribute| "#{attribute} = ?" }.join(', ')
+    set_str = self.class.columns.map {|attribute| "#{attribute} = ?"}.join(', ')
     update = <<-SQL
       UPDATE
         #{self.class.table_name}
