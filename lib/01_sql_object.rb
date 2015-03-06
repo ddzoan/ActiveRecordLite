@@ -86,9 +86,9 @@ class SQLObject
   end
 
   def insert
-    cols = self.class.columns[1..-1]
-    col_names = cols.join(', ')
-    question_marks = (['?'] * (cols.length)).join(', ')
+    cols_no_id = self.class.columns[1..-1]
+    col_names = cols_no_id.join(', ')
+    question_marks = (['?'] * (cols_no_id.length)).join(', ')
     insert = <<-SQL
       INSERT INTO
         #{self.class.table_name} (#{col_names})
@@ -103,10 +103,20 @@ class SQLObject
   end
 
   def update
-    # ...
+    set_str = self.class.columns.map { |attribute| "#{attribute} = ?" }.join(', ')
+    update = <<-SQL
+      UPDATE
+        #{self.class.table_name}
+      SET
+        #{set_str}
+      WHERE
+        id = #{attributes[:id]}
+    SQL
+
+    DBConnection.execute(update, *attribute_values)
   end
 
   def save
-    # ...
+    attributes[:id] ? update : insert
   end
 end
