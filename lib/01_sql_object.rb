@@ -53,7 +53,18 @@ class SQLObject
   end
 
   def self.find(id)
-    # ...
+    query = <<-SQL
+      SELECT
+        *
+      FROM
+        #{table_name}
+      WHERE
+        id = :id
+      LIMIT
+        1
+    SQL
+
+    parse_all(DBConnection.execute(query, id: id)).first
   end
 
   def initialize(params = {})
