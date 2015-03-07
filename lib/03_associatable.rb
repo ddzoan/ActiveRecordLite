@@ -20,7 +20,11 @@ end
 
 class BelongsToOptions < AssocOptions
   def initialize(name, options = {})
-    defaults = { foreign_key: "#{name}_id".to_sym, primary_key: :id, class_name: name.to_s.camelcase }
+    defaults = {
+      foreign_key: "#{name}_id".to_sym,
+      primary_key: :id,
+      class_name: name.to_s.camelcase
+    }
     options = defaults.merge(options)
     @foreign_key = options[:foreign_key]
     @primary_key = options[:primary_key]
@@ -30,7 +34,11 @@ end
 
 class HasManyOptions < AssocOptions
   def initialize(name, self_class_name, options = {})
-    defaults = { foreign_key: "#{self_class_name.underscore}_id".to_sym, primary_key: :id, class_name: name.to_s.singularize.camelcase }
+    defaults = {
+      foreign_key: "#{self_class_name.underscore}_id".to_sym,
+      primary_key: :id,
+      class_name: name.to_s.singularize.camelcase
+    }
     options = defaults.merge(options)
     @foreign_key = options[:foreign_key]
     @primary_key = options[:primary_key]
@@ -41,10 +49,15 @@ end
 module Associatable
   # Phase IIIb
   def belongs_to(name, options = {})
-    options = BelongsToOptions.new(name, options)
+    # assoc_options = {}
+    assoc_options[name] = BelongsToOptions.new(name, options)
+    foreign_key_col_name = assoc_options[name].foreign_key
+    primary_key_col_name = assoc_options[name].primary_key
+
     define_method(name) do
-      foreign_key = send(options.foreign_key)
-      options.model_class.where(options.primary_key => foreign_key).first
+      foreign_key = send(foreign_key_col_name)
+      class_constant = self.class.assoc_options[name].model_class
+      class_constant.where(primary_key_col_name => foreign_key).first
     end
   end
 
@@ -57,7 +70,7 @@ module Associatable
   end
 
   def assoc_options
-    # Wait to implement this in Phase IVa. Modify `belongs_to`, too.
+    @assoc_options ||= {}
   end
 end
 
